@@ -34,6 +34,7 @@ export default function CTFHeader() {
       <div className="ctf-header-inner">
         <div className="ctf-left">
           <Link to="/" className="brand-link" aria-label="Go to homepage">
+            <img src="/ctf-logo.jpg" alt="CTF" className="brand-logo-img" />
             <span className="brand-text">Kollywood CTF</span>
           </Link>
         </div>
