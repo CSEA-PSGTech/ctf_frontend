@@ -106,8 +106,10 @@ export const fetchSubmissionCategories = async () => {
   return res.data;
 };
 
-export const fetchQuestionsByCategory = async (categoryId) => {
-  const res = await api.post('/submission/questions', { categoryId });
+export const fetchQuestionsByCategory = async (categoryId, level) => {
+  const payload = { categoryId };
+  if (level && level !== 'All') payload.level = level.toLowerCase();
+  const res = await api.post('/submission/questions', payload);
   return res.data;
 };
 
@@ -124,14 +126,18 @@ export const checkQuestionSolved = async (question_id) => {
 };
 
 // Fetch solved questions by category
-export const fetchSolvedQuestions = async (categoryId) => {
-  const res = await api.post('/submission/solved', { categoryId });
+export const fetchSolvedQuestions = async (categoryId, level) => {
+  const payload = { categoryId };
+  if (level && level !== 'All') payload.level = level.toLowerCase();
+  const res = await api.post('/submission/solved', payload);
   return res.data;
 };
 
 // Fetch unsolved questions by category
-export const fetchUnsolvedQuestions = async (categoryId) => {
-  const res = await api.post('/submission/un-solved', { categoryId });
+export const fetchUnsolvedQuestions = async (categoryId, level) => {
+  const payload = { categoryId };
+  if (level && level !== 'All') payload.level = level.toLowerCase();
+  const res = await api.post('/submission/un-solved', payload);
   return res.data;
 };
 
@@ -176,6 +182,32 @@ export const deleteQuestionAdmin = async (id) => {
   return res.data;
 };
 
+// Admin user management endpoints
+export const getUsersAdmin = async () => {
+  const res = await api.get('/admin/users');
+  return res.data;
+};
+
+export const getUserByIdAdmin = async (id) => {
+  const res = await api.get(`/admin/users/${id}`);
+  return res.data;
+};
+
+export const updateUserAdmin = async (id, payload) => {
+  const res = await api.patch(`/admin/users/${id}`, payload);
+  return res.data;
+};
+
+export const deleteUserAdmin = async (id) => {
+  const res = await api.delete(`/admin/users/${id}`);
+  return res.data;
+};
+
+export const resetUserScoreAdmin = async (id) => {
+  const res = await api.patch(`/admin/users/${id}/reset-score`);
+  return res.data;
+};
+
 // Generic helpers
 export const getBackendUrl = () => BASE_URL;
 
@@ -202,5 +234,10 @@ export default {
   createQuestionAdmin,
   updateQuestionAdmin,
   deleteQuestionAdmin,
+  getUsersAdmin,
+  getUserByIdAdmin,
+  updateUserAdmin,
+  deleteUserAdmin,
+  resetUserScoreAdmin,
   getBackendUrl
 };

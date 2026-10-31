@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import Leaderboard from './pages/Leaderboard.jsx';
@@ -7,10 +7,21 @@ import Admin from './pages/Admin.jsx';
 import AnswerSolving from './pages/AnswerSolving.jsx';
 import ChallengesPage from './pages/Challenge.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import LoadingScreen from './components/LoadingScreen.jsx';
 import { useAuth } from './context/AuthContext.jsx';
 
 function App() {
 	const { isAuthenticated, isAdmin, isLoading } = useAuth();
+	const [assetsReady, setAssetsReady] = useState(false);
+
+	const handleLoadingFinished = useCallback(() => {
+		setAssetsReady(true);
+	}, []);
+
+	// Show loading screen until all assets are preloaded
+	if (!assetsReady) {
+		return <LoadingScreen onFinished={handleLoadingFinished} />;
+	}
 
 	if (isLoading) {
 		return <div style={{ minHeight: '100vh', background: '#0a0b10' }}></div>;

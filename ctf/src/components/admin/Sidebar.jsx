@@ -1,23 +1,30 @@
-import { useState } from 'react';
-
 function Sidebar({ activeMenu, setActiveMenu }) {
-  const menuItems = ['Overview', 'Categories', 'Questions'];
+  const menuItems = [
+    { id: 'Overview', label: 'Overview & Challenges', icon: '' },
+    { id: 'Questions', label: 'Upload Question', icon: '' },
+    { id: 'Categories', label: 'Manage Categories', icon: '' },
+    { id: 'Users', label: 'Manage Users', icon: '' }
+  ];
 
   return (
-    <div className="sidebar">
-      <h2 className="sidebar-title">CTF Manager</h2>
-      <nav className="sidebar-nav">
+    <aside className="admin-sidebar">
+      <div className="admin-sidebar-header">
+        <h2>Director Deck</h2>
+        <p>Challenge & Category Controls</p>
+      </div>
+      <nav className="admin-sidebar-nav">
         {menuItems.map((item) => (
           <button
-            key={item}
-            className={`sidebar-button ${activeMenu === item ? 'active' : ''}`}
-            onClick={() => setActiveMenu(item)}
+            key={item.id}
+            className={`admin-sidebar-btn ${activeMenu === item.id ? 'active' : ''}`}
+            onClick={() => setActiveMenu(item.id)}
           >
-            {item}
+            
+            <span>{item.label}</span>
           </button>
         ))}
       </nav>
-    </div>
+    </aside>
   );
 }
 

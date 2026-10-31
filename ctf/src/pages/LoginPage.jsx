@@ -19,7 +19,8 @@ export default function ArenaLogin() {
     email: '',
     password: '',
     confirmPassword: '',
-    year: ''
+    year: '',
+    difficulty: 'beginner'
   });
 
   const handleInputChange = (e) => {
@@ -53,7 +54,7 @@ export default function ArenaLogin() {
           setError(result.message || 'Login failed. Please check credentials.');
         }
       } else {
-        if (!formData.email || !formData.team_name || !formData.password || !formData.confirmPassword || !formData.year) {
+        if (!formData.email || !formData.team_name || !formData.password || !formData.confirmPassword || !formData.year || !formData.difficulty) {
           setError('Please fill all required audition fields.');
           setIsLoading(false);
           return;
@@ -75,7 +76,8 @@ export default function ArenaLogin() {
           email: formData.email.trim(),
           team_name: formData.team_name.trim(),
           password: formData.password,
-          year: parseInt(formData.year, 10)
+          year: parseInt(formData.year, 10),
+          difficulty: formData.difficulty
         });
 
         if (result.success) {
@@ -93,7 +95,7 @@ export default function ArenaLogin() {
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    setFormData({ team_name: '', email: '', password: '', confirmPassword: '', year: '' });
+    setFormData({ team_name: '', email: '', password: '', confirmPassword: '', year: '', difficulty: 'beginner' });
     setError('');
   };
 
@@ -184,7 +186,7 @@ export default function ArenaLogin() {
 
           {error && (
             <div className="cinema-error-banner" role="alert">
-              <span className="error-icon">⚠️</span>
+              
               <span>{error}</span>
             </div>
           )}
@@ -247,6 +249,26 @@ export default function ArenaLogin() {
                   <option value="2">2nd Year (Cadet)</option>
                   <option value="3">3rd Year (Senior Protagonist)</option>
                   <option value="4">4th Year (Master Mind)</option>
+                </select>
+              </div>
+            )}
+
+            {/* Difficulty Level Selection (Signup only) */}
+            {!isLogin && (
+              <div className="cinema-field">
+                <label className="cinema-label" htmlFor="difficulty">
+                  COMPETITION LEAGUE / DIFFICULTY
+                </label>
+                <select
+                  id="difficulty"
+                  name="difficulty"
+                  value={formData.difficulty}
+                  onChange={handleInputChange}
+                  className="cinema-input cinema-select"
+                  required
+                >
+                  <option value="beginner">Beginner (First-time CTF / Foundational)</option>
+                  <option value="intermediate">Intermediate (Experienced CTF Challenger)</option>
                 </select>
               </div>
             )}

@@ -2,7 +2,7 @@
    KOLLYWOOD CTF - CINEMATIC MOVIE THEME LOGIN & SIGNUP (FIXED 100VH NO SCROLL)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@400;500;600;700&display=swap');
+
 
 /* Allow natural scrolling when needed */
 html, body {
@@ -26,7 +26,9 @@ html, body {
     radial-gradient(ellipse at 50% 12%, rgba(180, 83, 9, 0.24) 0%, rgba(28, 10, 6, 0.8) 50%, #070302 100%),
     radial-gradient(circle at 50% 50%, rgba(234, 179, 8, 0.05) 0%, transparent 60%);
   color: #f3f4f6;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -223,7 +225,9 @@ html, body {
 }
 
 .poster-title {
-  font-family: 'Cinzel', serif;
+  font-family: 'Outfit', sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
   font-size: 13px;
   font-weight: 800;
   color: #fff;
@@ -340,7 +344,9 @@ html, body {
 
 /* Main Cinematic Title */
 .cinema-title {
-  font-family: 'Cinzel', serif;
+  font-family: 'Outfit', sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
   font-size: 2.1rem;
   font-weight: 900;
   letter-spacing: 2.5px;
@@ -386,13 +392,15 @@ html, body {
 }
 
 .card-title {
-  font-family: 'Cinzel', serif;
+  font-family: 'Outfit', sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: 1.8px;
   color: #fff;
   margin: 0 0 6px 0;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 .gold-accent-line {
@@ -435,7 +443,7 @@ html, body {
   font-weight: 700;
   color: #e5e7eb;
   letter-spacing: 0.8px;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 .cinema-input {
@@ -446,7 +454,9 @@ html, body {
   padding: 10px 12px;
   font-size: 0.9rem;
   color: #fff;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
   outline: none;
   transition: all 0.25s ease;
   box-sizing: border-box;
@@ -577,7 +587,9 @@ html, body {
   color: #1a0f00;
   border: none;
   border-radius: 10px;
-  font-family: 'Cinzel', serif;
+  font-family: 'Outfit', sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
   font-size: 1.05rem;
   font-weight: 900;
   letter-spacing: 1.8px;

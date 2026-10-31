@@ -3,10 +3,12 @@ import React, { memo } from 'react';
 const ChallengeFilters = memo(({ 
   categories,
   categoryFilter, 
+  levelFilter = 'All',
   solvedFilter, 
   orderFilter, 
   searchQuery,
   onCategoryChange,
+  onLevelFilterChange,
   onSolvedFilterChange,
   onOrderFilterChange,
   onSearchChange
@@ -24,6 +26,19 @@ const ChallengeFilters = memo(({
             {categories.map(cat => (
               <option key={cat._id} value={cat.name}>{cat.name}</option>
             ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label>Level</label>
+          <select 
+            value={levelFilter} 
+            onChange={(e) => onLevelFilterChange(e.target.value)}
+            className="filter-select"
+          >
+            <option value="All">All Levels</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
           </select>
         </div>
 
@@ -57,14 +72,15 @@ const ChallengeFilters = memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison - return true if props are equal (skip re-render)
   return (
     prevProps.categoryFilter === nextProps.categoryFilter &&
+    prevProps.levelFilter === nextProps.levelFilter &&
     prevProps.solvedFilter === nextProps.solvedFilter &&
     prevProps.orderFilter === nextProps.orderFilter &&
     prevProps.searchQuery === nextProps.searchQuery &&
     prevProps.categories.length === nextProps.categories.length &&
     prevProps.onCategoryChange === nextProps.onCategoryChange &&
+    prevProps.onLevelFilterChange === nextProps.onLevelFilterChange &&
     prevProps.onSolvedFilterChange === nextProps.onSolvedFilterChange &&
     prevProps.onOrderFilterChange === nextProps.onOrderFilterChange &&
     prevProps.onSearchChange === nextProps.onSearchChange

@@ -24,7 +24,7 @@ const QuestionCard = memo(({ question, solvedFilter, categoryFilter, onClick }) 
           fontSize: '12px',
           fontWeight: '600'
         }}>
-          ✓ Solved
+          Solved
         </div>
       )}
       {solvedFilter === 'Unsolved' && question.status === 'attempted_incorrect' && (
@@ -39,7 +39,7 @@ const QuestionCard = memo(({ question, solvedFilter, categoryFilter, onClick }) 
           fontSize: '12px',
           fontWeight: '600'
         }}>
-          ✗ Attempted
+          Attempted
         </div>
       )}
       <div className="card-header">
@@ -50,6 +50,20 @@ const QuestionCard = memo(({ question, solvedFilter, categoryFilter, onClick }) 
         <div className="stat">
           <span className="stat-value">{question.point}</span>
           <span className="stat-label">points</span>
+        </div>
+        <div className="stat" style={{ marginLeft: 'auto' }}>
+          <span style={{
+            background: (question.level || 'easy') === 'medium' ? 'rgba(234, 179, 8, 0.15)' : 'rgba(34, 197, 94, 0.15)',
+            color: (question.level || 'easy') === 'medium' ? '#facc15' : '#4ade80',
+            border: `1px solid ${(question.level || 'easy') === 'medium' ? 'rgba(234, 179, 8, 0.4)' : 'rgba(34, 197, 94, 0.4)'}`,
+            padding: '2px 8px',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: '700',
+            textTransform: 'uppercase'
+          }}>
+            {question.level || 'easy'}
+          </span>
         </div>
       </div>
 

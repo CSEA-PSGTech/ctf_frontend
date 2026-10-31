@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
 import Sidebar from '../components/admin/Sidebar';
 import MainContent from '../components/admin/MainContent';
-import '../App.css';
+import './Admin.css';
 import { getCategoriesAdmin, getQuestionsAdmin, checkIsAdmin } from '../api.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Admin() {
 	const [activeMenu, setActiveMenu] = useState('Overview');
@@ -16,6 +15,7 @@ function Admin() {
 	const [loading, setLoading] = useState(true);
 	const scrollPositionRef = useRef(0);
 	const navigate = useNavigate();
+	const { logout } = useAuth();
 
 	// Verify admin status with backend, then fetch data if allowed
 	useEffect(() => {
@@ -25,14 +25,11 @@ function Admin() {
 			try {
 				setLoading(true);
 				const res = await checkIsAdmin();
-				// Expect response shape: { flag: true } when admin
 				if (!mounted) return;
 				if (!res || !res.flag) {
-					// Not an admin - redirect to login
 					navigate('/login');
 					return;
 				}
-				// user is admin, fetch data
 				await fetchData();
 			} catch (err) {
 				navigate('/login');
@@ -47,54 +44,89 @@ function Admin() {
 	}, [navigate]);
 
 	const fetchData = async () => {
-	try {
-		setLoading(true);
-		const [cats, ques] = await Promise.all([
-			getCategoriesAdmin(),
-			getQuestionsAdmin()
-		]);
+		try {
+			setLoading(true);
+			const [cats, ques] = await Promise.all([
+				getCategoriesAdmin(),
+				getQuestionsAdmin()
+			]);
 
-		// ✅ Extract .data property safely
-		setCategories(Array.isArray(cats?.data) ? cats.data : []);
-		setQuestions(Array.isArray(ques?.data) ? ques.data : []);
-	} catch (err) {
-		// Silent fail for admin data loading
-	} finally {
-		setLoading(false);
-	}
-};
-
-
-	// Note: fetchData is called after admin verification above.
+			setCategories(Array.isArray(cats?.data) ? cats.data : []);
+			setQuestions(Array.isArray(ques?.data) ? ques.data : []);
+		} catch (err) {
+			// Silent fail for admin data loading
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	const handleEditCategory = (category) => {
-		const mainContent = document.querySelector('.main-content');
+		const mainContent = document.querySelector('.admin-main-content');
 		if (mainContent) scrollPositionRef.current = mainContent.scrollTop;
 		setEditingCategory(category);
-		setActiveMenu('Categories'); // Ensure content matches sidebar
+		setActiveMenu('Categories');
 	};
 
 	const handleEditQuestion = (category, question) => {
-		const mainContent = document.querySelector('.main-content');
+		const mainContent = document.querySelector('.admin-main-content');
 		if (mainContent) scrollPositionRef.current = mainContent.scrollTop;
 		setEditingQuestion({ category, question });
-		setActiveMenu('Questions'); // Ensure content matches sidebar
+		setActiveMenu('Questions');
 	};
 
 	const handleBackToOverview = () => {
 		setEditingCategory(null);
 		setEditingQuestion(null);
+		fetchData();
 		setTimeout(() => {
-			const mainContent = document.querySelector('.main-content');
+			const mainContent = document.querySelector('.admin-main-content');
 			if (mainContent) mainContent.scrollTop = scrollPositionRef.current;
 		}, 0);
 	};
 
+	const handleLogout = async () => {
+		await logout();
+		navigate('/login');
+	};
+
 	return (
-		<div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-			<Header />
-			<div className="app-container" style={{ flex: 1, display: 'flex' }}>
-				<Sidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
+		<div className="admin-arena">
+			<div className="admin-spotlight" />
+
+			{/* Top Director Header */}
+			<header className="admin-top-header">
+				<div className="admin-branding">
+					
+					<div className="admin-title-group">
+						<h1>KOLLYWOOD CTF</h1>
+						<span>Director Suite • Admin Portal</span>
+					</div>
+				</div>
+
+				<div className="admin-header-actions">
+					<Link to="/challenge" className="admin-nav-link">
+						Live Challenges
+					</Link>
+					<Link to="/leaderboard" className="admin-nav-link">
+						Leaderboard
+					</Link>
+					<button onClick={handleLogout} className="admin-logout-btn">
+						
+						<span>Exit Suite</span>
+					</button>
+				</div>
+			</header>
+
+			{/* Admin Layout */}
+			<div className="admin-body">
+				<Sidebar 
+					activeMenu={activeMenu} 
+					setActiveMenu={(menu) => {
+						setEditingCategory(null);
+						setEditingQuestion(null);
+						setActiveMenu(menu);
+					}} 
+				/>
 				<MainContent
 					activeMenu={activeMenu}
 					editingCategory={editingCategory}
@@ -108,7 +140,6 @@ function Admin() {
 					refreshData={fetchData}
 				/>
 			</div>
-			<Footer />
 		</div>
 	);
 }

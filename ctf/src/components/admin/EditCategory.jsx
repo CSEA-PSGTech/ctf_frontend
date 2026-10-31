@@ -1,75 +1,91 @@
 import { useState } from 'react';
 import { updateCategoryAdmin } from '../../api.js';
 
-function EditCategory({ category, onBack }) {
-  const [categoryName, setCategoryName] = useState(category.name);
-  const [difficulty, setDifficulty] = useState(category.difficulty || 'beginner');
+function EditCategory({ category, onBack, refreshData }) {
+  const [categoryName, setCategoryName] = useState(category.name || '');
   const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setStatus('');
+    setError('');
+
+    if (!categoryName.trim()) {
+      setError('Category name cannot be empty');
+      return;
+    }
+
     try {
+      setLoading(true);
       await updateCategoryAdmin(category._id, { 
-        name: categoryName,
-        difficulty: difficulty
+        name: categoryName.trim()
       });
       setStatus('Category updated successfully!');
+      if (refreshData) refreshData();
       setTimeout(() => {
         setStatus('');
         onBack();
-      }, 2000);
+      }, 1200);
     } catch (err) {
-      setStatus(err.response?.data?.message || 'Failed to update category');
+      setError(err.response?.data?.message || err.message || 'Failed to update category');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="edit-category-page">
-      <button className="back-button" onClick={onBack}>
-        ← <span>Back to Overview</span>
+    <div className="golden-admin-card">
+      <button className="admin-back-btn" onClick={onBack}>
+        <span>←</span>
+        <span>Back to Overview</span>
       </button>
 
-      <h1>Edit Category</h1>
+      <div className="card-heading-row">
+        <div>
+          <h2>EDIT CATEGORY</h2>
+          <p>Rename category. Questions assigned to this category will reflect the updated name.</p>
+        </div>
+        <span className="cinema-badge badge-gold">DIRECTOR SUITE</span>
+      </div>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="categoryName">Category Name</label>
+      {status && (
+        <div className="admin-banner success">
+          <span>{status}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="admin-banner error">
+          
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form className="admin-form" onSubmit={handleSubmit}>
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="categoryName">
+            CATEGORY NAME *
+          </label>
           <input
             type="text"
             id="categoryName"
-            className="input"
+            className="admin-input"
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
             placeholder="Enter category name"
+            disabled={loading}
             required
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="difficulty">Difficulty</label>
-          <select
-            id="difficulty"
-            name="difficulty"
-            className="dropdown"
-            value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value)}
-            required
-          >
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-          </select>
+        <div style={{ marginTop: '10px' }}>
+          <button type="submit" className="admin-gold-btn" disabled={loading}>
+            {loading ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
-
-        <button type="submit" className="btn-primary">
-          Update Category
-        </button>
       </form>
-
-      {status && (
-        <div className="status-message">
-          {status}
-        </div>
-      )}
     </div>
   );
 }

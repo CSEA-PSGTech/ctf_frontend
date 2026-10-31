@@ -1,11 +1,10 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@import url('https://db.onlinewebfonts.com/c/b9293bb81f83a7c7089fbfe957b198c7?family=Silentina+W00+Movie');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-cheltenham: 'Silentina W00 Movie', Georgia, 'Times New Roman', serif;
+  font-family: var(--font-cheltenham);
+  font-style: italic;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: dark;
@@ -17,10 +16,92 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  font-family: var(--font-cheltenham);
+  font-style: italic;
+}
+
+/* Body descriptive text elements: lowercase italic theme */
+p, span, a, label, div {
+  font-family: var(--font-cheltenham);
+  font-style: italic;
+}
+
+/* Important titles / headings: UPPERCASE */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-cheltenham);
+  font-style: italic;
+  text-transform: uppercase;
+}
+
+/* Header nav links and brand */
+.brand-text,
+.brand-link,
+.nav-link,
+.ctf-nav a,
+.header-nav a,
+.header-logo h1,
+.ctf-logo,
+.card-title,
+.cinema-title,
+.admin-branding h1,
+.admin-nav-link,
+.admin-sidebar-btn,
+.action-btn-gold,
+button[type="submit"],
+.cinema-label,
+.cinema-badge,
+.sidebar-title,
+.sidebar-button,
+th {
+  text-transform: uppercase !important;
+}
+
+/* ==========================================================================
+   USER WRITABLE INPUTS: Preserve user-preferenced case & legible styling
+   ========================================================================== */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.cinema-input,
+.admin-input,
+.admin-textarea,
+.admin-select,
+.search-input,
+.flag-input {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-style: normal !important;
+  text-transform: none !important;
+}
+
+/* Flags, passwords, code snippets: keep exact case and monospace clarity */
+input.flag-input,
+.flag-input,
+.admin-flag-input,
+code,
+pre,
+.code-snippet,
+.font-mono,
+input[type="password"] {
+  text-transform: none !important;
+  font-style: normal !important;
 }
 
 #root {

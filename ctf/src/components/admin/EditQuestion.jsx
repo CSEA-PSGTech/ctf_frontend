@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { updateQuestionAdmin, getCategoriesAdmin, fetchQuestionDetails } from '../../api.js';
 
-function EditQuestion({ category, question, onBack }) {
+function EditQuestion({ category, question, onBack, refreshData }) {
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     category: category || '',
@@ -9,9 +9,9 @@ function EditQuestion({ category, question, onBack }) {
     link: question?.link || '',
     description: question?.description || '',
     answer: question?.answer || '',
-    points: question?.points || question?.point || '',
-    difficulty: question?.difficulty || 'beginner',
-    year: question?.year || '',
+    points: question?.points || question?.point || '100',
+    year: question?.year || '1',
+    level: question?.level || 'easy',
     hint: question?.hint || ''
   });
 
@@ -19,7 +19,6 @@ function EditQuestion({ category, question, onBack }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Fetch categories from backend and ensure we have full question details
   useEffect(() => {
     let mounted = true;
 
@@ -29,10 +28,8 @@ function EditQuestion({ category, question, onBack }) {
         const cats = (res && (res.data || res)) || [];
         if (!mounted) return;
         setCategories(cats);
-        // If category missing, default to first
         setFormData(prev => ({ ...prev, category: prev.category || cats[0]?.name || '' }));
 
-        // If question object seems incomplete, try fetching full details by id
         if (question && (!question.description || question.answer === undefined || question.link === undefined)) {
           try {
             const detailRes = await fetchQuestionDetails(question._id || question.question_id || question.id);
@@ -44,13 +41,13 @@ function EditQuestion({ category, question, onBack }) {
               link: q.link || '',
               description: q.description || '',
               answer: q.answer || '',
-              points: q.points || q.point || '',
-              difficulty: q.difficulty || q.level || 'medium',
-              year: q.year || '',
+              points: q.points || q.point || '100',
+              year: q.year || '1',
+              level: q.level || 'easy',
               hint: q.hint || ''
             });
           } catch (err) {
-            // if fetchQuestionDetails fails, fall back to provided question
+            // fall back
           }
         }
       } catch (err) {
@@ -61,7 +58,7 @@ function EditQuestion({ category, question, onBack }) {
     fetchInitial();
 
     return () => { mounted = false; };
-  }, []);
+  }, [question]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -78,120 +75,240 @@ function EditQuestion({ category, question, onBack }) {
     setLoading(true);
 
     try {
+      let formattedAnswer = (formData.answer || '').trim();
+      if (!/^cyberseige\{.*\}$/i.test(formattedAnswer)) {
+        const inner = formattedAnswer.replace(/^cyberseige\{?/i, '').replace(/\}$/, '').trim();
+        formattedAnswer = `cyberseige{${inner}}`;
+      }
+
       const payload = {
-        category: formData.category,
-        title: formData.title,
-        link: formData.link || '',
-        description: formData.description || '',
-        difficulty: formData.difficulty || 'medium',
-        answer: formData.answer || '',
+        category: formData.category.trim(),
+        title: formData.title.trim(),
+        link: (formData.link || '').trim(),
+        description: formData.description.trim(),
+        answer: formattedAnswer,
         point: Number(formData.points || 0),
         year: Number(formData.year || 0),
-        hint: formData.hint || ''
+        level: formData.level || 'easy',
+        hint: (formData.hint || '').trim()
       };
 
-      const res = await updateQuestionAdmin(question._id || question.question_id || question.id, payload);
+      const qId = question._id || question.question_id || question.id;
+      const res = await updateQuestionAdmin(qId, payload);
 
-      if (res && (res.statusCode === 200 || res.success)) {
-        setStatus('Question updated successfully!');
+      if (res && (res.statusCode === 200 || res.success || res.data)) {
+        setStatus('Challenge updated successfully!');
+        if (refreshData) refreshData();
         setTimeout(() => {
           setStatus('');
           onBack();
-        }, 1500);
+        }, 1200);
       } else {
-        setError(res.message || 'Failed to update question');
+        setError(res?.data?.message || res?.message || 'Failed to update challenge');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update question');
+      setError(err.response?.data?.message || err.message || 'Failed to update challenge');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="edit-question-page">
-      <button className="back-button" onClick={onBack}>
-        ← <span>Back to Overview</span>
+    <div className="golden-admin-card">
+      <button className="admin-back-btn" onClick={onBack}>
+        <span>←</span>
+        <span>Back to Challenges Overview</span>
       </button>
 
-      <h1>Edit Question</h1>
+      <div className="card-heading-row">
+        <div>
+          <h2>EDIT CHALLENGE</h2>
+          <p>Modify details, points, descriptions, or answers for this challenge.</p>
+        </div>
+        <span className="cinema-badge badge-gold">DIRECTOR SUITE</span>
+      </div>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="category">Category</label>
-          <select
-            id="category"
-            name="category"
-            className="dropdown"
-            value={formData.category}
+      {status && (
+        <div className="admin-banner success">
+          <span>{status}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="admin-banner error">
+          
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form className="admin-form" onSubmit={handleSubmit}>
+        <div className="admin-grid-2">
+          <div className="admin-field">
+            <label className="admin-label" htmlFor="category">
+              CATEGORY *
+            </label>
+            <select
+              id="category"
+              name="category"
+              className="admin-select"
+              value={formData.category}
+              onChange={handleInputChange}
+              disabled={loading}
+              required
+            >
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="admin-field">
+            <label className="admin-label" htmlFor="title">
+              TITLE *
+            </label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              className="admin-input"
+              value={formData.title}
+              onChange={handleInputChange}
+              placeholder="Challenge title"
+              disabled={loading}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="admin-grid-3">
+          <div className="admin-field">
+            <label className="admin-label" htmlFor="points">
+              POINTS *
+            </label>
+            <input
+              type="number"
+              id="points"
+              name="points"
+              className="admin-input"
+              value={formData.points}
+              onChange={handleInputChange}
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div className="admin-field">
+            <label className="admin-label" htmlFor="year">
+              TARGET YEAR *
+            </label>
+            <select
+              id="year"
+              name="year"
+              className="admin-select"
+              value={formData.year}
+              onChange={handleInputChange}
+              disabled={loading}
+              required
+            >
+              <option value="1">Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4</option>
+            </select>
+          </div>
+
+          <div className="admin-field">
+            <label className="admin-label" htmlFor="level">
+              QUESTION LEVEL *
+            </label>
+            <select
+              id="level"
+              name="level"
+              className="admin-select"
+              value={formData.level}
+              onChange={handleInputChange}
+              disabled={loading}
+              required
+            >
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="answer">
+            FLAG / CORRECT ANSWER *
+          </label>
+          <input
+            type="text"
+            id="answer"
+            name="answer"
+            className="admin-input admin-flag-input"
+            value={formData.answer}
             onChange={handleInputChange}
+            placeholder="cyberseige{...}"
+            disabled={loading}
             required
-          >
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat.name}>{cat.name}</option>
-            ))}
-          </select>
+          />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="title">Title</label>
-          <input type="text" id="title" name="title" className="input"
-            value={formData.title} onChange={handleInputChange} placeholder="Enter question title" required />
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="link">
+            RESOURCE LINK (OPTIONAL)
+          </label>
+          <input
+            type="url"
+            id="link"
+            name="link"
+            className="admin-input"
+            value={formData.link}
+            onChange={handleInputChange}
+            placeholder="Optional download / challenge URL"
+            disabled={loading}
+          />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="link">Link</label>
-          <input type="text" id="link" name="link" className="input"
-            value={formData.link} onChange={handleInputChange} placeholder="Enter link" />
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="description">
+            DESCRIPTION *
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            className="admin-textarea"
+            value={formData.description}
+            onChange={handleInputChange}
+            rows="4"
+            disabled={loading}
+            required
+          />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea id="description" name="description" className="textarea"
-            value={formData.description} onChange={handleInputChange} placeholder="Enter question description"
-            rows="4" required />
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="hint">
+            HINT (OPTIONAL)
+          </label>
+          <input
+            type="text"
+            id="hint"
+            name="hint"
+            className="admin-input"
+            value={formData.hint}
+            onChange={handleInputChange}
+            placeholder="Optional hint for players"
+            disabled={loading}
+          />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="hint">Hint (Optional)</label>
-          <textarea id="hint" name="hint" className="textarea"
-            value={formData.hint} onChange={handleInputChange} placeholder="Enter hint for the question"
-            rows="2" />
+        <div style={{ marginTop: '10px' }}>
+          <button type="submit" className="admin-gold-btn" disabled={loading}>
+            {loading ? 'Saving Changes...' : 'Update Challenge'}
+          </button>
         </div>
-
-        <div className="form-group">
-          <label htmlFor="answer">Answer</label>
-          <input type="text" id="answer" name="answer" className="input"
-            value={formData.answer} onChange={handleInputChange} placeholder="Enter answer" required />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="points">Points</label>
-          <input type="text" id="points" name="points" className="input"
-            value={formData.points} onChange={handleInputChange} placeholder="Enter points" required />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="difficulty">Difficulty</label>
-          <select id="difficulty" name="difficulty" className="dropdown" value={formData.difficulty} onChange={handleInputChange} required>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="year">Year</label>
-          <input type="number" id="year" name="year" className="input"
-            value={formData.year} onChange={handleInputChange} placeholder="Enter year" required />
-        </div>
-
-        <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? 'Updating...' : 'Update Question'}
-        </button>
       </form>
-
-      {status && <div className="status-message" style={{ color: 'green' }}>{status}</div>}
-      {error && <div className="status-message" style={{ color: 'red' }}>{error}</div>}
     </div>
   );
 }
