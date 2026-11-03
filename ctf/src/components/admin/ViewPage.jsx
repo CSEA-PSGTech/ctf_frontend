@@ -201,7 +201,6 @@ function ViewPage({ onEditCategory, onEditQuestion, categories: propCategories, 
 							<div key={question._id} className="cinema-list-item">
 								<div className="cinema-item-info">
 									<span className="cinema-badge badge-gold">{question.point || question.points || 0} PTS</span>
-									<span className="cinema-badge badge-year">YR {question.year}</span>
 									<span className="cinema-badge badge-cat">{(question.level || 'easy').toUpperCase()}</span>
 									<span className="cinema-item-title">{question.title}</span>
 								</div>

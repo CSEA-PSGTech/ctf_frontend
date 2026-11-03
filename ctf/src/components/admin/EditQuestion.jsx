@@ -10,7 +10,6 @@ function EditQuestion({ category, question, onBack, refreshData }) {
     description: question?.description || '',
     answer: question?.answer || '',
     points: question?.points || question?.point || '100',
-    year: question?.year || '1',
     level: question?.level || 'easy',
     hint: question?.hint || ''
   });
@@ -42,7 +41,6 @@ function EditQuestion({ category, question, onBack, refreshData }) {
               description: q.description || '',
               answer: q.answer || '',
               points: q.points || q.point || '100',
-              year: q.year || '1',
               level: q.level || 'easy',
               hint: q.hint || ''
             });
@@ -88,7 +86,6 @@ function EditQuestion({ category, question, onBack, refreshData }) {
         description: formData.description.trim(),
         answer: formattedAnswer,
         point: Number(formData.points || 0),
-        year: Number(formData.year || 0),
         level: formData.level || 'easy',
         hint: (formData.hint || '').trim()
       };
@@ -182,7 +179,7 @@ function EditQuestion({ category, question, onBack, refreshData }) {
           </div>
         </div>
 
-        <div className="admin-grid-3">
+        <div className="admin-grid-2">
           <div className="admin-field">
             <label className="admin-label" htmlFor="points">
               POINTS *
@@ -197,26 +194,6 @@ function EditQuestion({ category, question, onBack, refreshData }) {
               disabled={loading}
               required
             />
-          </div>
-
-          <div className="admin-field">
-            <label className="admin-label" htmlFor="year">
-              TARGET YEAR *
-            </label>
-            <select
-              id="year"
-              name="year"
-              className="admin-select"
-              value={formData.year}
-              onChange={handleInputChange}
-              disabled={loading}
-              required
-            >
-              <option value="1">Year 1</option>
-              <option value="2">Year 2</option>
-              <option value="3">Year 3</option>
-              <option value="4">Year 4</option>
-            </select>
           </div>
 
           <div className="admin-field">

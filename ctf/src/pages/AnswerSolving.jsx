@@ -344,8 +344,8 @@ export default function AnswerSolving() {
               </a>
             )}
 
-            {/* Hint Button - Only show for year 1 and 2 */}
-            {challengeConfig.hint && challengeConfig.year && (challengeConfig.year === 1 || challengeConfig.year === 2) && (
+            {/* Hint Button */}
+            {challengeConfig.hint && (
               <button
                 onClick={() => setShowHint(!showHint)}
                 className={`hint-btn ${showHint ? 'active' : ''}`}

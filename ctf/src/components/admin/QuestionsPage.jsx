@@ -10,7 +10,6 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 		description: '',
 		answer: 'cyberseige{}',
 		point: '100',
-		year: '1',
 		level: 'easy',
 		hint: ''
 	});
@@ -55,7 +54,7 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 		setStatus('');
 		setError('');
 
-		const { category, title, description, answer, point, year } = formData;
+		const { category, title, description, answer, point } = formData;
 		let formattedAnswer = (answer || '').trim();
 		// If user entered or pasted without cyberseige{...}, wrap it automatically
 		if (!/^cyberseige\{.*\}$/i.test(formattedAnswer)) {
@@ -63,7 +62,7 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 			formattedAnswer = `cyberseige{${inner}}`;
 		}
 
-		if (!category || !title || !description || !formattedAnswer || formattedAnswer === 'cyberseige{}' || !point || !year) {
+		if (!category || !title || !description || !formattedAnswer || formattedAnswer === 'cyberseige{}' || !point) {
 			setError('Please fill all required challenge fields and provide the secret flag inside cyberseige{...}.');
 			return;
 		}
@@ -75,7 +74,6 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 			answer: formattedAnswer,
 			point: Number(point),
 			link: (formData.link || '').trim(),
-			year: Number(year),
 			level: formData.level || 'easy',
 			hint: (formData.hint || '').trim()
 		};
@@ -92,7 +90,6 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 					description: '',
 					answer: 'cyberseige{}',
 					point: '100',
-					year: '1',
 					level: 'easy',
 					hint: ''
 				});
@@ -176,8 +173,8 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 					</div>
 				</div>
 
-				{/* Row 2: Points, Year & Level */}
-				<div className="admin-grid-3">
+				{/* Row 2: Points & Level */}
+				<div className="admin-grid-2">
 					<div className="admin-field">
 						<label className="admin-label" htmlFor="point">
 							POINTS *
@@ -195,27 +192,6 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 							disabled={loading}
 							required
 						/>
-					</div>
-
-					<div className="admin-field">
-						<label className="admin-label" htmlFor="year">
-							TARGET YEAR *
-							<span className="label-tag">1 to 4</span>
-						</label>
-						<select
-							id="year"
-							name="year"
-							className="admin-select"
-							value={formData.year}
-							onChange={handleInputChange}
-							disabled={loading}
-							required
-						>
-							<option value="1">Year 1</option>
-							<option value="2">Year 2</option>
-							<option value="3">Year 3</option>
-							<option value="4">Year 4</option>
-						</select>
 					</div>
 
 					<div className="admin-field">
