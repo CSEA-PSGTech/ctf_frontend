@@ -16,9 +16,13 @@ export const AuthProvider = ({ children }) => {
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
-        setUser(userData);
-        // Set admin status from user field (fallback until backend endpoint is ready)
-        setIsAdminUser(userData.field === 'admin');
+        if (userData && typeof userData === 'object') {
+          setUser(userData);
+          // Set admin status from user field (fallback until backend endpoint is ready)
+          setIsAdminUser(userData.field === 'admin');
+        } else {
+          localStorage.removeItem('user');
+        }
       } catch (error) {
         localStorage.removeItem('user');
       }
@@ -107,24 +111,20 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = async () => {
+    // Immediately clear local storage and state
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsAdminUser(false);
+
+    // Best-effort notify backend without blocking client logout
     try {
       await api.logout();
-      
-      // Clear token and user data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setUser(null);
-      setIsAdminUser(false);
-      return { success: true, message: 'Logged out successfully' };
     } catch (error) {
-      // Even if API call fails, clear local state
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setUser(null);
-      setIsAdminUser(false);
-      
-      return { success: false, message: error.message };
+      console.warn('Backend logout failed or not implemented:', error);
     }
+
+    return { success: true, message: 'Logged out successfully' };
   };
 
   // Check if user is admin

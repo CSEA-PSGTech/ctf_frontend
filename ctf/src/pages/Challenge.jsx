@@ -17,6 +17,7 @@ const ChallengesPage = () => {
   const [questions, setQuestions] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [levelFilter, setLevelFilter] = useState('All');
   const [solvedFilter, setSolvedFilter] = useState('All');
   const [orderFilter, setOrderFilter] = useState('Points');
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,12 +29,12 @@ const ChallengesPage = () => {
     loadCategories();
   }, []);
 
-  // Fetch questions when category or solved filter changes
+  // Fetch questions when category, solved filter, or level filter changes
   useEffect(() => {
     if (selectedCategory) {
-      loadQuestions(selectedCategory, solvedFilter);
+      loadQuestions(selectedCategory, solvedFilter, levelFilter);
     }
-  }, [selectedCategory, solvedFilter]);
+  }, [selectedCategory, solvedFilter, levelFilter]);
 
   const loadCategories = async () => {
     try {
@@ -57,7 +58,7 @@ const ChallengesPage = () => {
     }
   };
 
-  const loadQuestions = async (categoryId, filter = 'All') => {
+  const loadQuestions = async (categoryId, filter = 'All', level = 'All') => {
     try {
       setLoading(true);
       setError('');
@@ -67,19 +68,18 @@ const ChallengesPage = () => {
       // Choose endpoint based on filter
       switch (filter) {
         case 'Solved':
-          response = await fetchSolvedQuestions(categoryId);
+          response = await fetchSolvedQuestions(categoryId, level);
           break;
         case 'Unsolved':
-          response = await fetchUnsolvedQuestions(categoryId);
+          response = await fetchUnsolvedQuestions(categoryId, level);
           break;
         case 'All':
         default:
-          response = await fetchQuestionsByCategory(categoryId);
+          response = await fetchQuestionsByCategory(categoryId, level);
           break;
       }
       
       if (response.success) {
-        // Handle different response structures
         if (filter === 'Solved') {
           setQuestions(response.data.questions || []);
         } else if (filter === 'Unsolved') {
@@ -111,6 +111,10 @@ const ChallengesPage = () => {
     setSolvedFilter(filter);
   }, []);
 
+  const handleLevelFilterChange = useCallback((lvl) => {
+    setLevelFilter(lvl);
+  }, []);
+
   const handleOrderFilterChange = useCallback((order) => {
     setOrderFilter(order);
   }, []);
@@ -120,30 +124,22 @@ const ChallengesPage = () => {
   }, []);
 
   const handleChallengeClick = useCallback((question) => {
-    console.log('🔍 Challenge: Navigating with question data:', {
-      title: question.title,
-      link: question.link,
-      hint: question.hint,
-      questionKeys: Object.keys(question),
-      fullQuestion: question
-    });
-    
     navigate(`/challenge/${question._id}`, { 
       state: { 
         challenge: {
-          _id: question._id, // MongoDB ID
-          id: question._id,  // Also keep id for compatibility
+          _id: question._id,
+          id: question._id,
           title: question.title,
           description: question.description,
           points: question.point,
-          difficulty: question.difficulty,
+          level: question.level || 'easy',
           category: question.categoryId?.name || categoryFilter,
           year: question.year,
           solves: question.solved_count || 0,
-          link: question.link,  // Add the missing link field!
-          linkText: question.link ? 'Download File' : null,
+          link: question.link,
+          linkText: question.link ? 'Source Link' : null,
           linkUrl: question.link,
-          hint: question.hint || null  // Add hint field
+          hint: question.hint || null
         } 
       } 
     });
@@ -152,6 +148,11 @@ const ChallengesPage = () => {
   // Memoize filtered and sorted questions
   const filteredQuestions = useMemo(() => {
     let filtered = [...questions];
+
+    // Client-side level filter fallback
+    if (levelFilter && levelFilter !== 'All') {
+      filtered = filtered.filter(q => (q.level || 'easy').toLowerCase() === levelFilter.toLowerCase());
+    }
 
     // Search filter
     if (searchQuery) {
@@ -178,7 +179,7 @@ const ChallengesPage = () => {
     });
 
     return filtered;
-  }, [questions, searchQuery, orderFilter]);
+  }, [questions, levelFilter, searchQuery, orderFilter]);
 
   if (loading) {
     return (
@@ -237,13 +238,28 @@ const ChallengesPage = () => {
       <CTFHeader />
 
       <main className="main-content">
+        <div className="page-toolbar">
+          <div className="page-title-group">
+            <h1>Active CTF Arena</h1>
+            <p>Select a scenario to deploy, decrypt, and conquer</p>
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="cinematic-back-btn"
+          >
+            ← Back to Home
+          </button>
+        </div>
+
         <ChallengeFilters
           categories={categories}
           categoryFilter={categoryFilter}
+          levelFilter={levelFilter}
           solvedFilter={solvedFilter}
           orderFilter={orderFilter}
           searchQuery={searchQuery}
           onCategoryChange={handleCategoryChange}
+          onLevelFilterChange={handleLevelFilterChange}
           onSolvedFilterChange={handleSolvedFilterChange}
           onOrderFilterChange={handleOrderFilterChange}
           onSearchChange={handleSearchChange}

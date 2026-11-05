@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 // Use BACKEND_URL from .env file (accessed via Vite's import.meta.env)
-// Default to Render backend if not set
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-const api = axios.create({
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://kriyabackend.psgtech.ac.in/cybersec/ctf';
+
+CKEND_URL || 'http://localhost:5000';const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // Keep for CORS compatibility
   headers: {
@@ -36,8 +36,6 @@ api.interceptors.response.use(
   (err) => {
     // Handle 401 Unauthorized errors
     if (err.response?.status === 401) {
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Unauthorized';
-      
       // Don't redirect if it's a login/signup request failing (wrong credentials)
       const isAuthEndpoint = err.config?.url?.includes('/auth/login') || err.config?.url?.includes('/auth/signup');
       
@@ -68,14 +66,23 @@ export const login = async (payload) => {
 };
 
 export const logout = async () => {
-  const res = await api.post('/auth/logout');
-  return res.data;
+  try {
+    const res = await api.post('/auth/logout', {}, { timeout: 3000 });
+    return res.data;
+  } catch (e) {
+    return { success: true };
+  }
 };
 
 // Check if user is admin
 export const checkIsAdmin = async () => {
-  const res = await api.get('/admin/isAdmin');
-  return res.data;
+  try {
+    const res = await api.get('/admin/isAdmin');
+    return res.data;
+  } catch (err) {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return { flag: user?.field === 'admin' };
+  }
 };
 
 // Leaderboard endpoints
@@ -101,15 +108,16 @@ export const fetchSubmissionCategories = async () => {
   return res.data;
 };
 
-export const fetchQuestionsByCategory = async (categoryId) => {
-  const res = await api.post('/submission/questions', { categoryId });
+export const fetchQuestionsByCategory = async (categoryId, level) => {
+  const payload = { categoryId };
+  if (level && level !== 'All') payload.level = level.toLowerCase();
+  const res = await api.post('/submission/questions', payload);
   return res.data;
 };
 
 // Get individual question details
 export const fetchQuestionDetails = async (question_id) => {
   const res = await api.post('/submission/question', { question_id });
-  console.log('🔍 Frontend API - Fetched question details:', res.data);
   return res.data;
 };
 
@@ -120,14 +128,18 @@ export const checkQuestionSolved = async (question_id) => {
 };
 
 // Fetch solved questions by category
-export const fetchSolvedQuestions = async (categoryId) => {
-  const res = await api.post('/submission/solved', { categoryId });
+export const fetchSolvedQuestions = async (categoryId, level) => {
+  const payload = { categoryId };
+  if (level && level !== 'All') payload.level = level.toLowerCase();
+  const res = await api.post('/submission/solved', payload);
   return res.data;
 };
 
 // Fetch unsolved questions by category
-export const fetchUnsolvedQuestions = async (categoryId) => {
-  const res = await api.post('/submission/un-solved', { categoryId });
+export const fetchUnsolvedQuestions = async (categoryId, level) => {
+  const payload = { categoryId };
+  if (level && level !== 'All') payload.level = level.toLowerCase();
+  const res = await api.post('/submission/un-solved', payload);
   return res.data;
 };
 
@@ -142,7 +154,6 @@ export const createCategoryAdmin = async (payload) => {
   return res.data;
 };
 
-// New endpoints for updating/deleting categories
 export const updateCategoryAdmin = async (id, payload) => {
   const res = await api.patch(`/admin/categories/${id}`, payload);
   return res.data;
@@ -173,6 +184,32 @@ export const deleteQuestionAdmin = async (id) => {
   return res.data;
 };
 
+// Admin user management endpoints
+export const getUsersAdmin = async () => {
+  const res = await api.get('/admin/users');
+  return res.data;
+};
+
+export const getUserByIdAdmin = async (id) => {
+  const res = await api.get(`/admin/users/${id}`);
+  return res.data;
+};
+
+export const updateUserAdmin = async (id, payload) => {
+  const res = await api.patch(`/admin/users/${id}`, payload);
+  return res.data;
+};
+
+export const deleteUserAdmin = async (id) => {
+  const res = await api.delete(`/admin/users/${id}`);
+  return res.data;
+};
+
+export const resetUserScoreAdmin = async (id) => {
+  const res = await api.patch(`/admin/users/${id}/reset-score`);
+  return res.data;
+};
+
 // Generic helpers
 export const getBackendUrl = () => BASE_URL;
 
@@ -181,10 +218,16 @@ export default {
   signup,
   login,
   logout,
+  checkIsAdmin,
   fetchLeaderboard,
+  fetchLeaderboardByDifficulty,
   submitAnswer,
   fetchSubmissionCategories,
   fetchQuestionsByCategory,
+  fetchQuestionDetails,
+  checkQuestionSolved,
+  fetchSolvedQuestions,
+  fetchUnsolvedQuestions,
   getCategoriesAdmin,
   createCategoryAdmin,
   updateCategoryAdmin,
@@ -193,5 +236,10 @@ export default {
   createQuestionAdmin,
   updateQuestionAdmin,
   deleteQuestionAdmin,
+  getUsersAdmin,
+  getUserByIdAdmin,
+  updateUserAdmin,
+  deleteUserAdmin,
+  resetUserScoreAdmin,
   getBackendUrl
 };

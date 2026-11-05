@@ -21,7 +21,7 @@ const { user, logout, isAdmin } = useAuth();
   
     const handleLogout = async () => {
     await logout();
-    navigate('/');
+    navigate('/login');
     };
   
   return (
