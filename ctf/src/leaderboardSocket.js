@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client';
 
 // Read backend url from Vite env or fallback
-const BACKEND_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) || process.env.BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) || process.env.BACKEND_URL;
 
 let socket = null;
 const leaderboardListeners = new Set();

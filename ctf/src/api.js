@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Use BACKEND_URL from .env file (accessed via Vite's import.meta.env)
 // Default to Render backend if not set
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://ctf-backend-1.onrender.com';
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const api = axios.create({
   baseURL: BASE_URL,

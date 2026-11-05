@@ -62,7 +62,7 @@ export default function ArenaLogin() {
 				setError('Passwords do not match');
 				return;
 			}
-
+			console.log('backend_url', import.meta.env.VITE_BACKEND_URL);
 			const result = await signup({
 				email: formData.email,
 				team_name: formData.team_name,
