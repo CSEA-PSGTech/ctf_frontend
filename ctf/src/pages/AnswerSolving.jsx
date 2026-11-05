@@ -190,7 +190,7 @@ export default function AnswerSolving() {
       
       const response = await submitAnswer({
         question_id: challengeConfig._id || challengeConfig.id,
-        submitted_answer: flagInput.trim().toLowerCase().startsWith('cyberseige{') && flagInput.trim().endsWith('}') ? flagInput.trim() : `cyberseige{${flagInput.trim().replace(/^cyberseige\{?/i, '').replace(/\}$/, '').trim()}}`
+        submitted_answer: flagInput.trim()
       });
 
       if (response.success) {
