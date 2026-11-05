@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import CTFHeader from '../components/layout/CTFHeader';
 import { useAuth } from '../context/AuthContext';
 import { submitAnswer, fetchQuestionDetails, checkQuestionSolved, fetchLeaderboard, fetchLeaderboardByDifficulty } from '../api';
 import { connectLeaderboardSocket, onLeaderboardUpdate, disconnectLeaderboardSocket } from '../leaderboardSocket';
+import './AnswerSolving.css';
 
 
 export default function AnswerSolving() {
@@ -54,7 +55,7 @@ export default function AnswerSolving() {
           // Use backend data for link if available, fallback to navigation data
           const normalizedChallenge = {
             ...passedChallenge,
-            linkText: (backendData?.link || passedChallenge.link) ? 'Download File' : null,
+            linkText: (backendData?.link || passedChallenge.link) ? 'Challenge URL' : null,
             linkUrl: backendData?.link || passedChallenge.link || null,
             hint: backendData?.hint || passedChallenge.hint || null
           };
@@ -100,7 +101,7 @@ export default function AnswerSolving() {
               category: question.categoryId?.name || 'General',
               solves: question.solved_count || 0,
               year: question.year,
-              linkText: question.link ? 'Download File' : null,
+              linkText: question.link ? 'Challenge URL' : null,
               linkUrl: question.link,
               hint: question.hint || null
             };
@@ -128,6 +129,7 @@ export default function AnswerSolving() {
   }, [id, passedChallenge]);
   
   const [top10, setTop10] = useState([]);
+  const [sidebarDifficulty, setSidebarDifficulty] = useState('beginner');
 
   // Subscribe to leaderboard updates (top 10)
   useEffect(() => {
@@ -136,8 +138,9 @@ export default function AnswerSolving() {
 
     const unsub = onLeaderboardUpdate((payload) => {
       // If payload has difficulty and we have a challenge difficulty, only update matching difficulty
-      if (payload?.difficulty && challengeConfig?.difficulty && payload.difficulty !== challengeConfig.difficulty) return;
+      if (payload?.difficulty && payload.difficulty !== sidebarDifficulty) return;
 
+      console.log(`[AnswerSolving Top10] 🔄 Live update for "${sidebarDifficulty}"`);
       const list = payload?.data || payload?.top10 || payload || [];
       const normalized = (Array.isArray(list) ? list : []).slice(0, 10).map((p, idx) => ({
         rank: p.rank ?? idx + 1,
@@ -151,12 +154,7 @@ export default function AnswerSolving() {
     // fetch initial leaderboard for the challenge difficulty if available
     (async () => {
       try {
-        let res;
-        if (challengeConfig?.difficulty) {
-          res = await fetchLeaderboardByDifficulty(challengeConfig.difficulty);
-        } else {
-          res = await fetchLeaderboard();
-        }
+        const res = await fetchLeaderboardByDifficulty(sidebarDifficulty);
         const list = res?.data || res?.top10 || res || [];
         const normalized = (Array.isArray(list) ? list : []).slice(0, 10).map((p, idx) => ({
           rank: p.rank ?? idx + 1,
@@ -174,7 +172,7 @@ export default function AnswerSolving() {
       if (typeof unsub === 'function') unsub();
       // optional: disconnectLeaderboardSocket(); // keep connection for other pages
     };
-  }, [challengeConfig?.difficulty]);
+  }, [sidebarDifficulty]);
 
   const handleSubmit = async () => {
     if (isSolved) {
@@ -253,7 +251,7 @@ export default function AnswerSolving() {
           color: '#fff'
         }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+            
             <p>Loading question...</p>
           </div>
         </div>
@@ -274,7 +272,7 @@ export default function AnswerSolving() {
           color: '#fff'
         }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+            
             <p>Question not found</p>
           </div>
         </div>
@@ -283,179 +281,94 @@ export default function AnswerSolving() {
   }
 
   return (
-    <div style={{ background: '#0f0f0f', minHeight: '100vh' }}>
+    <div className="answer-page">
       <CTFHeader />
-      <div style={{ 
-        display: 'flex', 
-        gap: '24px', 
-        padding: '24px',
-        maxWidth: '1400px',
-        margin: '0 auto'
-      }}>
+      <div className="answer-layout">
         {/* Main Challenge Card */}
-        <div style={{ 
-          flex: 1,
-          background: '#2a2e35',
-          borderRadius: '0',
-          padding: '32px',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {/* Back Button */}
+        <div className="challenge-card">
+          {/* Back Button to Challenges */}
           <button
-            onClick={() => navigate('/challenges')}
-            style={{
-              background: 'transparent',
-              border: '1px solid #4b5563',
-              color: '#d1d5db',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              marginBottom: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s',
-              alignSelf: 'flex-start'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = '#374151';
-              e.target.style.borderColor = '#6b7280';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'transparent';
-              e.target.style.borderColor = '#4b5563';
-            }}
+            onClick={() => navigate('/challenge')}
+            className="cinematic-back-btn"
+            style={{ marginBottom: '24px', alignSelf: 'flex-start' }}
           >
             ← Back to Challenges
           </button>
           
           {/* Header with title, points, and difficulty */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'flex-start',
-            marginBottom: '24px'
-          }}>
-            <h1 style={{ 
-              color: '#fff', 
-              fontSize: '28px', 
-              fontWeight: '600',
-              margin: 0
-            }}>
+          <div className="challenge-header">
+            <h1 className="challenge-title">
               {challengeConfig.title}
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="challenge-meta">
               {challengeConfig.difficulty && (
-                <div style={{
-                  background: '#10b981',
-                  color: '#fff',
-                  padding: '4px 12px',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  textTransform: 'capitalize'
-                }}>
+                <span className="difficulty-pill">
                   {challengeConfig.difficulty}
-                </div>
+                </span>
               )}
-              <div style={{
-                color: '#fff',
-                fontSize: '18px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                ⏱️ {challengeConfig.points} points
-              </div>
+              <span className="points-meta">
+                {challengeConfig.points} Points
+              </span>
             </div>
           </div>
 
-          {/* Description */}
+          {/* Silent Movie Description Card with Video Background */}
+          <div className="movie-description-card">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="movie-description-video"
+              src="/silent-film-bg.mp4"
+            />
+            <div className="movie-description-overlay" />
+            <div className="movie-description-content">
+              <div className="movie-card-header">
+                <span className="movie-reel-marker">• SCENARIO REEL •</span>
+              </div>
+              <p className="movie-description-text">
+                {challengeConfig.description}
+              </p>
+            </div>
+          </div>
+
           <div style={{ flex: 1, marginBottom: '24px' }}>
-            <p style={{ 
-              color: '#d1d5db', 
-              fontSize: '16px', 
-              lineHeight: '1.6',
-              marginBottom: '16px'
-            }}>
-              {challengeConfig.description}
-            </p>
-            
-            {/* DEBUG: Link display information */}
-            {console.log('🔍 AnswerSolving: Link display check:', {
-              linkText: challengeConfig.linkText,
-              linkUrl: challengeConfig.linkUrl,
-              willShow: !!(challengeConfig.linkText && challengeConfig.linkUrl)
-            })}
-            
             {challengeConfig.linkText && challengeConfig.linkUrl && (
-              <a href={challengeConfig.linkUrl} style={{
-                color: '#3b82f6',
-                textDecoration: 'underline',
-                fontSize: '16px',
-                display: 'inline-block',
-                marginBottom: '12px'
-              }}>
-                🔗 {challengeConfig.linkText}
+              <a
+                href={challengeConfig.linkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="challenge-link"
+              >
+                <span>{challengeConfig.linkText}</span>
               </a>
             )}
 
-            {/* Hint Button - Only show for year 1 and 2 */}
-            {challengeConfig.hint && challengeConfig.year && (challengeConfig.year === 1 || challengeConfig.year === 2) && (
+            {/* Hint Button */}
+            {challengeConfig.hint && (
               <button
                 onClick={() => setShowHint(!showHint)}
-                style={{
-                  background: showHint ? '#f59e0b' : '#10b981',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  marginBottom: '16px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.opacity = '0.8';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.opacity = '1';
-                }}
+                className={`hint-btn ${showHint ? 'active' : ''}`}
               >
-                💡 {showHint ? 'Hide Hint' : 'Show Hint'}
+                <span>{showHint ? 'Hide Hint' : 'Show Hint'}</span>
               </button>
             )}
 
             {/* Hint Modal/Display */}
             {showHint && challengeConfig.hint && (
-              <div style={{
-                background: 'rgba(16, 185, 129, 0.1)',
-                border: '1px solid #10b981',
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '16px',
-                color: '#10b981'
-              }}>
+              <div className="hint-box">
                 <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
+                  fontSize: '13px', 
+                  fontWeight: '700', 
                   marginBottom: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
+                  color: '#facc15',
+                  letterSpacing: '1px',
+                  textTransform: 'uppercase'
                 }}>
-                  💡 Hint
+                  Directive Hint
                 </div>
-                <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
+                <div style={{ fontSize: '15px', lineHeight: '1.6', color: '#fef08a' }}>
                   {challengeConfig.hint}
                 </div>
               </div>
@@ -463,16 +376,19 @@ export default function AnswerSolving() {
 
             {challengeConfig.additionalInfo && (
               <p style={{ 
-                color: '#d1d5db', 
-                fontSize: '15px',
+                color: '#a8a29e', 
+                fontSize: '14px',
                 marginTop: '16px'
               }}>
                 {challengeConfig.additionalInfo}{' '}
                 {challengeConfig.additionalLinkText && challengeConfig.additionalLinkUrl && (
-                  <a href={challengeConfig.additionalLinkUrl} style={{
-                    color: '#3b82f6',
-                    textDecoration: 'underline'
-                  }}>
+                  <a
+                    href={challengeConfig.additionalLinkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="challenge-link"
+                    style={{ display: 'inline-flex', padding: '4px 10px', fontSize: '13px' }}
+                  >
                     {challengeConfig.additionalLinkText}
                   </a>
                 )}
@@ -482,99 +398,54 @@ export default function AnswerSolving() {
 
           {/* Flag submission */}
           <div style={{ marginTop: 'auto' }}>
-            <div style={{ 
-              display: 'flex', 
-              gap: '12px',
-              marginBottom: '16px'
-            }}>
-              <div style={{
-                flex: 1,
-                background: isSolved ? '#f3f4f6' : '#fff',
-                borderRadius: '0',
-                display: 'flex',
-                overflow: 'hidden',
-                border: `1px solid ${isSolved ? '#10b981' : '#d1d5db'}`,
-                opacity: isSolved ? 0.6 : 1
-              }}>
-                <div style={{
-                  background: isSolved ? '#d1fae5' : '#f3f4f6',
-                  padding: '12px 16px',
-                  borderRight: `1px solid ${isSolved ? '#10b981' : '#d1d5db'}`,
-                  color: isSolved ? '#065f46' : '#374151',
-                  fontWeight: '500',
-                  fontSize: '15px'
-                }}>
-                  {isSolved ? '✅ Solved' : 'Flag'}
+            <div className="flag-submission-row">
+              <div className="flag-input-group" style={{ opacity: isSolved ? 0.6 : 1 }}>
+                <div className="flag-label">
+                  {isSolved ? 'Solved' : 'Flag'}
                 </div>
                 <input 
                   type="text"
                   value={flagInput}
                   onChange={(e) => !isSolved && setFlagInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !isSolved && handleSubmit()}
-                  placeholder={isSolved ? "You have already solved this question!" : "CyberCTF{your_answer_here}"}
+                  placeholder={isSolved ? "You have already solved this question!" : "cybersiege{your_answer_here}"}
                   disabled={isSolved}
+                  className="flag-input"
                   style={{
-                    flex: 1,
-                    border: 'none',
-                    padding: '12px 16px',
-                    fontSize: '15px',
-                    color: isSolved ? '#10b981' : '#6b7280',
-                    outline: 'none',
-                    background: isSolved ? '#f3f4f6' : '#fff',
-                    cursor: isSolved ? 'not-allowed' : 'text'
+                    cursor: isSolved ? 'not-allowed' : 'text',
+                    textTransform: 'none',
+                    fontStyle: 'normal'
                   }}
                 />
               </div>
               <button 
                 onClick={handleSubmit}
                 disabled={submitting || isSolved}
-                style={{
-                  background: (submitting || isSolved) ? '#6b7280' : '#fff',
-                  color: (submitting || isSolved) ? '#fff' : '#000',
-                  border: '1px solid #d1d5db',
-                  padding: '12px 32px',
-                  borderRadius: '0',
-                  fontSize: '15px',
-                  fontWeight: '700',
-                  cursor: (submitting || isSolved) ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s',
-                  opacity: (submitting || isSolved) ? 0.7 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (!submitting && !isSolved) {
-                    e.target.style.background = '#2a2e35';
-                    e.target.style.color = '#fff';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!submitting && !isSolved) {
-                    e.target.style.background = '#fff';
-                    e.target.style.color = '#000';
-                  }
-                }}
+                className="submit-btn"
               >
-                {submitting ? 'Submitting...' : isSolved ? 'Solved ✓' : 'Submit'}
+                {submitting ? 'Submitting...' : isSolved ? 'Solved' : 'Submit Flag'}
               </button>
             </div>
 
             {/* Submission Result */}
             {submitResult && (
               <div style={{
-                padding: '16px',
-                borderRadius: '8px',
-                marginBottom: '16px',
-                background: submitResult.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                padding: '16px 20px',
+                borderRadius: '10px',
+                marginBottom: '18px',
+                background: submitResult.success ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
                 border: `1px solid ${submitResult.success ? '#10b981' : '#ef4444'}`,
-                color: submitResult.success ? '#10b981' : '#ef4444'
+                color: submitResult.success ? '#6ee7b7' : '#fca5a5',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.5)'
               }}>
-                <div style={{ fontWeight: '600', marginBottom: '8px', fontSize: '16px' }}>
-                  {submitResult.success ? '✅ Correct!' : '❌ Incorrect'}
+                <div style={{ fontWeight: '800', marginBottom: '6px', fontSize: '15px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  {submitResult.success ? 'Access Granted • Correct' : 'Access Denied • Incorrect'}
                 </div>
-                <div style={{ fontSize: '14px', marginBottom: '8px' }}>
+                <div style={{ fontSize: '14px', marginBottom: '6px' }}>
                   {submitResult.message}
                 </div>
                 {submitResult.success && submitResult.pointsAwarded && (
-                  <div style={{ fontSize: '14px', fontWeight: '500' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#facc15' }}>
                     Points Awarded: +{submitResult.pointsAwarded} | Total Score: {submitResult.totalScore}
                   </div>
                 )}
@@ -586,89 +457,100 @@ export default function AnswerSolving() {
               display: 'flex', 
               justifyContent: 'space-between',
               alignItems: 'center',
-              paddingTop: '16px',
-              borderTop: '1px solid #374151'
+              paddingTop: '18px',
+              borderTop: '1px solid rgba(234, 179, 8, 0.15)'
             }}>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {challengeConfig.tags && challengeConfig.tags.length > 0 ? (
                   challengeConfig.tags.map((tag, i) => (
                     <span key={i} style={{
-                      background: 'rgba(59, 130, 246, 0.1)',
-                      color: '#3b82f6',
+                      background: 'rgba(234, 179, 8, 0.12)',
+                      border: '1px solid rgba(234, 179, 8, 0.3)',
+                      color: '#fde047',
                       padding: '4px 12px',
                       borderRadius: '6px',
-                      fontSize: '13px',
-                      fontWeight: '500'
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
                     }}>
                       {tag}
                     </span>
                   ))
                 ) : (
                   <span style={{
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    color: '#3b82f6',
+                    background: 'rgba(234, 179, 8, 0.12)',
+                    border: '1px solid rgba(234, 179, 8, 0.3)',
+                    color: '#fde047',
                     padding: '4px 12px',
                     borderRadius: '6px',
-                    fontSize: '13px',
-                    fontWeight: '500'
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase'
                   }}>
                     {challengeConfig.category}
                   </span>
                 )}
               </div>
               <span style={{ 
-                color: '#9ca3af', 
-                fontSize: '14px' 
+                color: '#facc15', 
+                fontSize: '13px',
+                fontWeight: 600,
+                letterSpacing: '0.5px'
               }}>
-                {(challengeConfig.solves || 0).toLocaleString()} solves
+                {(challengeConfig.solves || 0).toLocaleString()} solves recorded
               </span>
             </div>
           </div>
         </div>
 
         {/* Sidebar */}
-        <div style={{ 
-          width: '340px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px'
-        }}>
+        <div className="answer-sidebar">
           {/* Top 10 */}
-          <div style={{
-            background: '#2a2e35',
-            borderRadius: '0',
-            padding: '24px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.4)'
-          }}>
-            <h3 style={{ 
-              color: '#fff', 
-              fontSize: '18px', 
-              fontWeight: '600',
-              marginBottom: '16px',
+          <div className="sidebar-card">
+            <h3 className="sidebar-card-title">
+              Top 10 Hall of Fame
+            </h3>
+
+            {/* Division Switcher */}
+            <div className="sidebar-tabs">
+              <button
+                type="button"
+                className={`sidebar-tab-btn ${sidebarDifficulty === 'beginner' ? 'active' : ''}`}
+                onClick={() => setSidebarDifficulty('beginner')}
+              >
+                Beginner
+              </button>
+              <button
+                type="button"
+                className={`sidebar-tab-btn ${sidebarDifficulty === 'intermediate' ? 'active' : ''}`}
+                onClick={() => setSidebarDifficulty('intermediate')}
+              >
+                Intermediate
+              </button>
+            </div>
+
+            <div style={{ 
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: 'column',
               gap: '8px'
             }}>
-              Top10
-            </h3>
-            <div style={{ 
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '12px'
-            }}>
-              {top10.map((player) => (
-                <div key={player.team_name} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  color: '#d1d5db',
-                  fontSize: '14px'
-                }}>
-                  <span style={{ fontWeight: '600' }}>{player.rank}</span>
-                  <span style={{ marginLeft: '8px' }}>{player.username}</span>
-                  <span style={{ marginLeft: 'auto', color: '#9ca3af', fontWeight: 600 }}>{player.points}</span>
+              {top10.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '16px 8px', color: '#a8a29e', fontSize: '13px' }}>
+                  No solves in {sidebarDifficulty} division yet
                 </div>
-              ))}
+              ) : (
+                top10.slice(0, 10).map((player, idx) => (
+                  <div key={player.username || idx} className="sidebar-leaderboard-item">
+                    <span style={{ fontWeight: '800', color: player.rank <= 3 ? '#facc15' : '#a8a29e', width: '28px' }}>
+                      #{player.rank}
+                    </span>
+                    <span style={{ color: '#f3f4f6', fontWeight: 600 }}>{player.username}</span>
+                    <span style={{ marginLeft: 'auto', color: '#fef08a', fontWeight: 700 }}>{player.points} PTS</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

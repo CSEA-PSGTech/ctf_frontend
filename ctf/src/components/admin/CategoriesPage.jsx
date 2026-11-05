@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { createCategoryAdmin } from '../../api.js';
+import { createCategoryAdmin, deleteCategoryAdmin } from '../../api.js';
 
-function CategoriesPage({ refreshData }) {
+function CategoriesPage({ categories = [], refreshData, onEditCategory }) {
 	const [categoryName, setCategoryName] = useState('');
-	const [difficulty, setDifficulty] = useState('beginner');
 	const [loading, setLoading] = useState(false);
 	const [status, setStatus] = useState('');
 	const [error, setError] = useState('');
@@ -21,75 +20,134 @@ function CategoriesPage({ refreshData }) {
 		try {
 			setLoading(true);
 			const res = await createCategoryAdmin({ 
-				name: categoryName.trim(),
-				difficulty: difficulty
+				name: categoryName.trim()
 			});
-			
 
-		if (
-			res?.status === 201 || 
-			res?.statusCode === 201 || 
-			res?.success
-		) {
-			setStatus('Category created successfully!');
-			setCategoryName('');
-			setDifficulty('beginner');
-			if (refreshData) refreshData();
-		} else {
-			setError(res?.data?.message || 'Cannot create category');
-		}
-
-
+			if (res?.status === 201 || res?.statusCode === 201 || res?.success || res?.data) {
+				setStatus(`Category "${categoryName.trim()}" created successfully!`);
+				setCategoryName('');
+				if (refreshData) refreshData();
+			} else {
+				setError(res?.data?.message || res?.message || 'Cannot create category');
+			}
 		} catch (err) {
-			setError(err.response?.data?.message || 'Failed to create category');
+			setError(err.response?.data?.message || err.message || 'Failed to create category');
 		} finally {
 			setLoading(false);
 		}
 	};
 
+	const handleDelete = async (category) => {
+		if (window.confirm(`Are you sure you want to delete the category "${category.name}"? This cannot be undone.`)) {
+			try {
+				await deleteCategoryAdmin(category._id);
+				setStatus(`Category "${category.name}" deleted.`);
+				if (refreshData) refreshData();
+			} catch (err) {
+				setError(err.response?.data?.message || 'Failed to delete category (it may still have questions attached).');
+			}
+		}
+	};
+
 	return (
-		<div className="categories-page">
-			<h1>Categories</h1>
-
-			<form className="form" onSubmit={handleCreate}>
-				{/* CATEGORY NAME INPUT */}
-				<div className="form-group">
-					<label htmlFor="categoryName">New Category</label>
-					<input
-						type="text"
-						id="categoryName"
-						name="categoryName"
-						className="input"
-						value={categoryName}
-						onChange={(e) => setCategoryName(e.target.value)}
-						placeholder="Enter category name"
-						disabled={loading}
-					/>
+		<div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+			{/* Create Category Card */}
+			<div className="golden-admin-card">
+				<div className="card-heading-row">
+					<div>
+						<h2>CREATE NEW CATEGORY</h2>
+						<p>Define genres for challenges (e.g. Cryptography, Web Exploitation, Reverse Engineering, Forensics).</p>
+					</div>
+					<span className="cinema-badge badge-gold">DIRECTOR STUDIO</span>
 				</div>
 
-				{/* DIFFICULTY SELECT */}
-				<div className="form-group">
-					<label htmlFor="difficulty">Difficulty</label>
-					<select
-						id="difficulty"
-						name="difficulty"
-						className="dropdown"
-						value={difficulty}
-						onChange={(e) => setDifficulty(e.target.value)}
-						disabled={loading}
-					>
-						<option value="beginner">Beginner</option>
-						<option value="intermediate">Intermediate</option>
-					</select>
+				{status && (
+					<div className="admin-banner success">
+						
+						<span>{status}</span>
+					</div>
+				)}
+
+				{error && (
+					<div className="admin-banner error">
+						
+						<span>{error}</span>
+					</div>
+				)}
+
+				<form className="admin-form" onSubmit={handleCreate}>
+					<div className="admin-field">
+						<label className="admin-label" htmlFor="categoryName">
+							CATEGORY NAME *
+							<span className="label-tag">Universal across all difficulty levels</span>
+						</label>
+						<input
+							type="text"
+							id="categoryName"
+							name="categoryName"
+							className="admin-input"
+							value={categoryName}
+							onChange={(e) => setCategoryName(e.target.value)}
+							placeholder="e.g. Binary Exploitation, OSINT, Steganography"
+							disabled={loading}
+							required
+						/>
+					</div>
+
+					<div style={{ marginTop: '10px' }}>
+						<button type="submit" className="admin-gold-btn" disabled={loading || !categoryName.trim()}>
+							{loading ? 'Creating Category...' : '+ Create Category'}
+						</button>
+					</div>
+				</form>
+			</div>
+
+			{/* Existing Categories Card */}
+			<div className="golden-admin-card">
+				<div className="card-heading-row">
+					<div>
+						<h2>EXISTING CATEGORIES ({categories.length})</h2>
+						<p>All categories currently available in the CTF arena.</p>
+					</div>
+					<span className="cinema-badge badge-cat">ACTIVE GENRES</span>
 				</div>
 
-				<button type="submit" className="btn-primary" disabled={loading}>
-					{loading ? 'Creating...' : 'Create Category'}
-				</button>
-			</form>
-
-			{error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
-			{status && <div style={{ color: 'green', marginTop: '10px' }}>{status}</div>}
+				{categories.length === 0 ? (
+					<div className="cinema-empty-state">
+						<span></span>
+						<p>No categories created yet. Use the form above to add your first category.</p>
+					</div>
+				) : (
+					<div className="cinema-list-wrapper">
+						{categories.map((cat) => (
+							<div key={cat._id} className="cinema-list-item">
+								<div className="cinema-item-info">
+									<span className="cinema-badge badge-cat">GENRE</span>
+									<span className="cinema-item-title">{cat.name}</span>
+								</div>
+								<div className="cinema-item-actions">
+									{onEditCategory && (
+										<button
+											className="cinema-action-icon-btn edit"
+											onClick={() => onEditCategory(cat)}
+											title="Edit Category"
+										>
+											Edit
+										</button>
+									)}
+									<button
+										className="cinema-action-icon-btn delete"
+										onClick={() => handleDelete(cat)}
+										title="Delete Category"
+									>
+										Delete
+									</button>
+								</div>
+							</div>
+						))}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }
