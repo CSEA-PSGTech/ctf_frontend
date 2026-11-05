@@ -48,14 +48,18 @@ export default function Scoreboard() {
       if (beginnerRes.status === 'fulfilled') {
         const raw = beginnerRes.value?.data || beginnerRes.value?.leaderboard || beginnerRes.value || [];
         setBeginnerList(normalizeList(raw));
+      } else {
+        console.error('[Leaderboard Page] ❌ REST Error fetching Beginner board:', beginnerRes.reason);
       }
 
       if (intermediateRes.status === 'fulfilled') {
         const raw = intermediateRes.value?.data || intermediateRes.value?.leaderboard || intermediateRes.value || [];
         setIntermediateList(normalizeList(raw));
+      } else {
+        console.error('[Leaderboard Page] ❌ REST Error fetching Intermediate board:', intermediateRes.reason);
       }
     } catch (err) {
-      console.error('Failed to load leaderboards:', err);
+      console.error('[Leaderboard Page] ❌ Failed to load leaderboards:', err);
     } finally {
       setLoading(false);
     }
@@ -63,13 +67,17 @@ export default function Scoreboard() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    connectLeaderboardSocket(() => {}, { auth: { token } });
+    console.log('[Leaderboard Page] Mounting: connecting to WebSocket...');
+    connectLeaderboardSocket(() => {
+      console.log('[Leaderboard Page] WebSocket connected callback executed');
+    }, { auth: { token } });
 
     // Handle real-time leaderboard update from socket
     const unsub = onLeaderboardUpdate((payload) => {
       const difficulty = payload?.difficulty?.toLowerCase();
       const raw = payload?.data || payload?.leaderboard || [];
       const normalized = normalizeList(raw);
+      console.log(`[Leaderboard Page] 🔄 Live update applied for "${difficulty}" (${normalized.length} teams)`);
 
       if (difficulty === 'intermediate') {
         setIntermediateList(normalized);
@@ -82,7 +90,8 @@ export default function Scoreboard() {
     });
 
     // Listen to new solve and refresh
-    const unsubSolve = onNewSolve(() => {
+    const unsubSolve = onNewSolve((data) => {
+      console.log('[Leaderboard Page] 🎉 Live solve notification received:', data);
       loadLeaderboards();
     });
 

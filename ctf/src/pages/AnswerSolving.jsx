@@ -140,6 +140,7 @@ export default function AnswerSolving() {
       // If payload has difficulty and we have a challenge difficulty, only update matching difficulty
       if (payload?.difficulty && payload.difficulty !== sidebarDifficulty) return;
 
+      console.log(`[AnswerSolving Top10] 🔄 Live update for "${sidebarDifficulty}"`);
       const list = payload?.data || payload?.top10 || payload || [];
       const normalized = (Array.isArray(list) ? list : []).slice(0, 10).map((p, idx) => ({
         rank: p.rank ?? idx + 1,
