@@ -74,9 +74,9 @@ function EditQuestion({ category, question, onBack, refreshData }) {
 
     try {
       let formattedAnswer = (formData.answer || '').trim();
-      if (!/^cyberseige\{.*\}$/i.test(formattedAnswer)) {
-        const inner = formattedAnswer.replace(/^cyberseige\{?/i, '').replace(/\}$/, '').trim();
-        formattedAnswer = `cyberseige{${inner}}`;
+      if (!/^cybersiege\{.*\}$/i.test(formattedAnswer)) {
+        const inner = formattedAnswer.replace(/^cybersiege\{?/i, '').replace(/\}$/, '').trim();
+        formattedAnswer = `cybersiege{${inner}}`;
       }
 
       const payload = {
@@ -226,7 +226,7 @@ function EditQuestion({ category, question, onBack, refreshData }) {
             className="admin-input admin-flag-input"
             value={formData.answer}
             onChange={handleInputChange}
-            placeholder="cyberseige{...}"
+            placeholder="cybersiege{...}"
             disabled={loading}
             required
           />

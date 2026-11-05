@@ -407,7 +407,7 @@ export default function AnswerSolving() {
                   value={flagInput}
                   onChange={(e) => !isSolved && setFlagInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !isSolved && handleSubmit()}
-                  placeholder={isSolved ? "You have already solved this question!" : "cyberseige{your_answer_here}"}
+                  placeholder={isSolved ? "You have already solved this question!" : "cybersiege{your_answer_here}"}
                   disabled={isSolved}
                   className="flag-input"
                   style={{

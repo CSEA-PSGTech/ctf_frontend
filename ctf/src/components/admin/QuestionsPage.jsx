@@ -8,7 +8,7 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 		title: '',
 		link: '',
 		description: '',
-		answer: 'cyberseige{}',
+		answer: 'cybersiege{}',
 		point: '100',
 		level: 'easy',
 		hint: ''
@@ -56,14 +56,14 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 
 		const { category, title, description, answer, point } = formData;
 		let formattedAnswer = (answer || '').trim();
-		// If user entered or pasted without cyberseige{...}, wrap it automatically
-		if (!/^cyberseige\{.*\}$/i.test(formattedAnswer)) {
-			const inner = formattedAnswer.replace(/^cyberseige\{?/i, '').replace(/\}$/, '').trim();
-			formattedAnswer = `cyberseige{${inner}}`;
+		// If user entered or pasted without cybersiege{...}, wrap it automatically
+		if (!/^cybersiege\{.*\}$/i.test(formattedAnswer)) {
+			const inner = formattedAnswer.replace(/^cybersiege\{?/i, '').replace(/\}$/, '').trim();
+			formattedAnswer = `cybersiege{${inner}}`;
 		}
 
-		if (!category || !title || !description || !formattedAnswer || formattedAnswer === 'cyberseige{}' || !point) {
-			setError('Please fill all required challenge fields and provide the secret flag inside cyberseige{...}.');
+		if (!category || !title || !description || !formattedAnswer || formattedAnswer === 'cybersiege{}' || !point) {
+			setError('Please fill all required challenge fields and provide the secret flag inside cybersiege{...}.');
 			return;
 		}
 
@@ -88,7 +88,7 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 					title: '',
 					link: '',
 					description: '',
-					answer: 'cyberseige{}',
+					answer: 'cybersiege{}',
 					point: '100',
 					level: 'easy',
 					hint: ''
@@ -218,7 +218,7 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 				<div className="admin-field">
 					<label className="admin-label" htmlFor="answer">
 						SECRET FLAG / CORRECT ANSWER *
-						<span className="label-tag">Default wrapper: cyberseige&#123;flag&#125;</span>
+						<span className="label-tag">Default wrapper: cybersiege&#123;flag&#125;</span>
 					</label>
 					<input
 						type="text"
@@ -227,7 +227,7 @@ function QuestionsPage({ categories: propCategories, refreshData }) {
 						className="admin-input admin-flag-input"
 						value={formData.answer}
 						onChange={handleInputChange}
-						placeholder="cyberseige{your_flag_here}"
+						placeholder="cybersiege{your_flag_here}"
 						disabled={loading}
 						required
 					/>
