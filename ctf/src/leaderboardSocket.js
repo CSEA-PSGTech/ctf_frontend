@@ -4,9 +4,7 @@ const LOG_PREFIX = '[Leaderboard WebSocket]';
 
 // Extract the host origin and socket.io path from the backend URL
 const getSocketConfig = () => {
-  const rawUrl =
-    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) ||
-    'https://kriyabackend.psgtech.ac.in/cybersec/ctf';
+  const rawUrl = 'http://10.1.10.162:6506/cybersec/ctf/';
 
   let hostOrigin = rawUrl;
   let socketPath = '/cybersec/ctf/socket.io';
