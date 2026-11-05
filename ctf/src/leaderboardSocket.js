@@ -26,6 +26,7 @@ const getSocketConfig = () => {
   return { hostOrigin, socketPath, rawUrl };
 };
 
+
 let socket = null;
 const leaderboardListeners = new Set();
 const userRankListeners = new Set();

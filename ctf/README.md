@@ -37,6 +37,23 @@ import About from './pages/About.jsx'
 - Run `npm run dev` and open the shown local URL.
 - Navigate to your page via its route, e.g. `/answer`.
 
+## Docker
+
+Build and run the production image from this directory:
+
+```bash
+docker build --build-arg VITE_BACKEND_URL=https://your-backend.example.com -t ctf-frontend .
+docker run --rm -p 8080:80 ctf-frontend
+```
+
+Open `http://localhost:8080`. The backend URL is compiled into the Vite bundle, so provide
+`VITE_BACKEND_URL` when building the image rather than copying `.env` into the image.
+
+The GitHub Actions workflow at `../.github/workflows/docker-publish.yml` publishes the image to
+GitHub Container Registry on pushes to `main` and version tags. Set the repository variable
+`VITE_BACKEND_URL` under **Settings → Secrets and variables → Actions → Variables** before
+publishing.
+
 
 Currently, two official plugins are available:
 

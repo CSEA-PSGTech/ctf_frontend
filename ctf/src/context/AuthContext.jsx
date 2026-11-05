@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }) => {
 
   // Signup function - matches backend: { email, team_name, password, year, difficulty }
   const signup = async (signupData) => {
+
     try {
       const response = await api.signup(signupData);
       
@@ -59,7 +60,7 @@ export const AuthProvider = ({ children }) => {
         difficulty: response.user.difficulty,
         field: response.user.field
       };
-      
+      console.log('status code', response.status);
       // Store token and user data
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -70,7 +71,9 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, user: userData };
     } catch (error) {
+      console.log("status code", error.response?.status);
       // Extract backend error message from response
+      console.log('Signup error:', error.response);
       const message = error.response?.data?.message || error.response?.data?.error || 'Signup failed. Please try again.';
       return { success: false, message };
     }
