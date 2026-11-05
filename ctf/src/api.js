@@ -3,8 +3,7 @@ import axios from 'axios';
 // Use BACKEND_URL from .env file (accessed via Vite's import.meta.env)
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://kriyabackend.psgtech.ac.in/cybersec/ctf';
-
-CKEND_URL || 'http://localhost:5000';const api = axios.create({
+const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // Keep for CORS compatibility
   headers: {
